@@ -2,82 +2,113 @@ import {
   Box,
   Card,
   Layout,
-  Link,
-  List,
   Page,
+  ResourceList,
+  ResourceItem,
   Text,
   BlockStack,
+  Spinner,
+  Thumbnail,
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
+import { authenticate } from "../shopify.server";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
+
+  const response = await admin.graphql(
+    `#graphql
+      query {
+        products(first: 50) {
+          nodes {
+            id
+            title
+            status
+            totalInventory
+            priceRangeV2 {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            images(first: 1) {
+              nodes {
+                url
+              }
+            }
+          }
+        }
+      }`
+  );
+
+  const {
+    data: {
+      products: { nodes },
+    },
+  } = await response.json();
+
+  return json({ products: nodes });
+};
 
 export default function AdditionalPage() {
+  const { products } = useLoaderData<typeof loader>();
+
   return (
     <Page>
-      <TitleBar title="Additional page" />
+      <TitleBar title="商品列表" />
       <Layout>
         <Layout.Section>
           <Card>
-            <BlockStack gap="300">
-              <Text as="p" variant="bodyMd">
-                The app template comes with an additional page which
-                demonstrates how to create multiple pages within app navigation
-                using{" "}
-                <Link
-                  url="https://shopify.dev/docs/apps/tools/app-bridge"
-                  target="_blank"
-                  removeUnderline
-                >
-                  App Bridge
-                </Link>
-                .
-              </Text>
-              <Text as="p" variant="bodyMd">
-                To create your own page and have it show up in the app
-                navigation, add a page inside <Code>app/routes</Code>, and a
-                link to it in the <Code>&lt;NavMenu&gt;</Code> component found
-                in <Code>app/routes/app.jsx</Code>.
-              </Text>
-            </BlockStack>
-          </Card>
-        </Layout.Section>
-        <Layout.Section variant="oneThird">
-          <Card>
-            <BlockStack gap="200">
-              <Text as="h2" variant="headingMd">
-                Resources
-              </Text>
-              <List>
-                <List.Item>
-                  <Link
-                    url="https://shopify.dev/docs/apps/design-guidelines/navigation#app-nav"
-                    target="_blank"
-                    removeUnderline
-                  >
-                    App nav best practices
-                  </Link>
-                </List.Item>
-              </List>
+            <BlockStack gap="500">
+              {products ? (
+                <ResourceList
+                  resourceName={{ singular: "商品", plural: "商品" }}
+                  items={products}
+                  renderItem={(item) => {
+                    const { id, title, status, totalInventory, priceRangeV2, images } = item;
+                    const price = priceRangeV2?.minVariantPrice?.amount
+                      ? `${priceRangeV2.minVariantPrice.currencyCode} ${priceRangeV2.minVariantPrice.amount}`
+                      : "未设置价格";
+                    const media = images?.nodes[0]?.url
+                      ? <Thumbnail source={images.nodes[0].url} alt={title} />
+                      : undefined;
+
+                    return (
+                      <ResourceItem
+                        id={id}
+                        url={`shopify:admin/products/${id.replace("gid://shopify/Product/", "")}`}
+                        media={media}
+                      >
+                        <BlockStack gap="200">
+                          <Text as="h3" variant="bodyMd" fontWeight="bold">
+                            {title}
+                          </Text>
+                          <BlockStack gap="200">
+                            <Text as="p" variant="bodyMd">价格: {price}</Text>
+                            <Text as="p" variant="bodyMd">状态: {status}</Text>
+                            <Text as="p" variant="bodyMd">库存: {totalInventory}</Text>
+                          </BlockStack>
+                        </BlockStack>
+                      </ResourceItem>
+                    );
+                  }}
+                />
+              ) : (
+                <Box padding="400">
+                  <BlockStack gap="400" align="center">
+                    <Spinner size="large" />
+                    <Text as="p" variant="bodyMd">
+                      加载商品列表中...
+                    </Text>
+                  </BlockStack>
+                </Box>
+              )}
             </BlockStack>
           </Card>
         </Layout.Section>
       </Layout>
     </Page>
-  );
-}
-
-function Code({ children }: { children: React.ReactNode }) {
-  return (
-    <Box
-      as="span"
-      padding="025"
-      paddingInlineStart="100"
-      paddingInlineEnd="100"
-      background="bg-surface-active"
-      borderWidth="025"
-      borderColor="border"
-      borderRadius="100"
-    >
-      <code>{children}</code>
-    </Box>
   );
 }
