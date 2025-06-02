@@ -3,7 +3,7 @@
 client_id = "c10d03beedf929b0e0de12c904391b23"
 name = "app"
 handle = "app-1702"
-application_url = "https://columns-auctions-sleeping-specialists.trycloudflare.com"
+application_url = "https://sd-postings-za-diego.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://columns-auctions-sleeping-specialists.trycloudflare.com/auth/callback",
-  "https://columns-auctions-sleeping-specialists.trycloudflare.com/auth/shopify/callback",
-  "https://columns-auctions-sleeping-specialists.trycloudflare.com/api/auth/callback"
+  "https://sd-postings-za-diego.trycloudflare.com/auth/callback",
+  "https://sd-postings-za-diego.trycloudflare.com/auth/shopify/callback",
+  "https://sd-postings-za-diego.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
