@@ -1,6 +1,6 @@
-<div class="product-text-customizer-container">
+{% comment %} <div class="product-text-customizer-container">
   {%- comment -%} 获取商品主图和设定宽度，宽度可以后续从 schema 配置中读取以获得更大灵活性 {%- endcomment -%}
-  {%- liquid
+  {% comment %} {%- liquid
     assign featured_media = product.featured_media
     assign image_width = 600
     if block.settings.image_max_width > 0
@@ -19,7 +19,7 @@
     </canvas>
   {%- else -%}
     <p>商品图片未找到。</p>
-  {%- endif -%}
+  {%- endif -%} {% endcomment %}
 
   <div style="margin-top: 15px; padding: 10px; border: 1px solid #f0f0f0; border-radius: 5px;">
     <label for="customizer-text-input-{{ block.id }}" style="display: block; margin-bottom: 5px; font-weight: bold;">输入自定义文本:</label>
@@ -48,7 +48,7 @@
 
 {% schema %}
 {
-  "name": "商品文本定制器",
+  "name": "Customized Product Text",
   "target": "section",
   "class": "product-text-customizer-section",
   "settings": [
@@ -120,8 +120,20 @@
   ],
   "presets": [
     {
-      "name": "商品文本定制器"
+      "name": "Customized"
     }
   ]
 }
-{% endschema %}
+{% endschema %} {% endcomment %}
+
+<div class=”product-page”>
+  <div class=”product-image”>
+    {{ product.featured_image | image_url: width: 400 | image_tag }}
+  </div>
+  <div class=”product-title”>
+    {{ product.title }}
+  </div>
+  <div class=”product-price”>
+    {{ product.price | money }}
+  </div>
+</div>
