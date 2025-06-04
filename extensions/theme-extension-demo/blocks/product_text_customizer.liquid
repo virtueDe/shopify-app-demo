@@ -1,139 +1,67 @@
-{% comment %} <div class="product-text-customizer-container">
-  {%- comment -%} 获取商品主图和设定宽度，宽度可以后续从 schema 配置中读取以获得更大灵活性 {%- endcomment -%}
-  {% comment %} {%- liquid
-    assign featured_media = product.featured_media
-    assign image_width = 600
-    if block.settings.image_max_width > 0
-      assign image_width = block.settings.image_max_width
-    endif
-    assign image_url = featured_media.preview_image | image_url: width: image_width
-  -%}
+{% comment %}
+  <div class="product-text-customizer-container">
+    {%- comment -%} 获取商品主图和设定宽度，宽度可以后续从 schema 配置中读取以获得更大灵活性 {%- endcomment -%}
+    {% comment %} {%- liquid
+      assign featured_media = product.featured_media
+      assign image_width = 600
+      if block.settings.image_max_width > 0
+        assign image_width = block.settings.image_max_width
+      endif
+      assign image_url = featured_media.preview_image | image_url: width: image_width
+    -%}
 
-  {%- if featured_media.preview_image -%}
-    {%- comment -%} Canvas 用于绘制图片和文本 {%- endcomment -%}
-    <canvas id="customizer-canvas-{{ block.id }}"
-            data-image-url="{{ image_url }}"
-            data-block-id="{{ block.id }}"
-            style="border: 1px solid #eee; max-width: 100%; height: auto; display: block; margin-left: auto; margin-right: auto;">
-      您的浏览器不支持 Canvas.
-    </canvas>
-  {%- else -%}
-    <p>商品图片未找到。</p>
-  {%- endif -%} {% endcomment %}
+    {%- if featured_media.preview_image -%}
+      {%- comment -%} Canvas 用于绘制图片和文本 {%- endcomment -%}
+      <canvas id="customizer-canvas-{{ block.id }}"
+              data-image-url="{{ image_url }}"
+              data-block-id="{{ block.id }}"
+              style="border: 1px solid #eee; max-width: 100%; height: auto; display: block; margin-left: auto; margin-right: auto;">
+        您的浏览器不支持 Canvas.
+      </canvas>
+    {%- else -%}
+      <p>商品图片未找到。</p>
+    {%- endif -%} {% endcomment %}
 
-  <div style="margin-top: 15px; padding: 10px; border: 1px solid #f0f0f0; border-radius: 5px;">
-    <label for="customizer-text-input-{{ block.id }}" style="display: block; margin-bottom: 5px; font-weight: bold;">输入自定义文本:</label>
-    <input type="text"
-           id="customizer-text-input-{{ block.id }}"
-           value="{{ block.settings.default_text }}"
-           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;">
+    <div style="margin-top: 15px; padding: 10px; border: 1px solid #f0f0f0; border-radius: 5px;">
+      <label for="customizer-text-input-{{ block.id }}" style="display: block; margin-bottom: 5px; font-weight: bold;">输入自定义文本:</label>
+      <input type="text"
+             id="customizer-text-input-{{ block.id }}"
+             value="{{ block.settings.default_text }}"
+             style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;">
+    </div>
+  </div>
+
+  {%- comment -%}
+    确保每个块实例的 JavaScript 变量和函数是唯一的，
+    通过将 block.id 传递给 JavaScript 来初始化特定的实例。
+  {%- endcomment -%}
+  <script>
+    // 将 block 设置和 ID 传递给 JavaScript
+    window.productCustomizers = window.productCustomizers || {};
+    window.productCustomizers['{{ block.id }}'] = {
+      settings: {{ block.settings | json }},
+      imageUrl: "{{ image_url }}",
+      productId: "{{ product.id }}"
+    };
+  </script>
+
+  <script src="{{ 'product-customizer.js' | asset_url }}" defer></script>
+{% endcomment %}
+
+<div class="product-page">
+  <div class="product-image">
+    {{ product.featured_image | image_url: width: 400 | image_tag }}
+  </div>
+  <div class="product-title">
+    {{ product.title }}
+  </div>
+  <div class="product-price">
+    {{ product.price | money }}
   </div>
 </div>
-
-{%- comment -%}
-  确保每个块实例的 JavaScript 变量和函数是唯一的，
-  通过将 block.id 传递给 JavaScript 来初始化特定的实例。
-{%- endcomment -%}
-<script>
-  // 将 block 设置和 ID 传递给 JavaScript
-  window.productCustomizers = window.productCustomizers || {};
-  window.productCustomizers['{{ block.id }}'] = {
-    settings: {{ block.settings | json }},
-    imageUrl: "{{ image_url }}",
-    productId: "{{ product.id }}"
-  };
-</script>
-
-<script src="{{ 'product-customizer.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
   "name": "Customized Product Text",
-  "target": "section",
-  "class": "product-text-customizer-section",
-  "settings": [
-    {
-      "type": "text",
-      "id": "default_text",
-      "label": "默认文本",
-      "default": "自定义文字"
-    },
-    {
-      "type": "color",
-      "id": "text_color",
-      "label": "文本颜色",
-      "default": "#333333"
-    },
-    {
-      "type": "range",
-      "id": "font_size",
-      "label": "字体大小 (px)",
-      "min": 10,
-      "max": 100,
-      "step": 1,
-      "default": 30
-    },
-    {
-      "type": "select",
-      "id": "font_family",
-      "label": "字体",
-      "options": [
-        { "value": "Arial, sans-serif", "label": "Arial" },
-        { "value": "Helvetica, sans-serif", "label": "Helvetica" },
-        { "value": "Times New Roman, serif", "label": "Times New Roman" },
-        { "value": "Courier New, monospace", "label": "Courier New" },
-        { "value": "Verdana, sans-serif", "label": "Verdana" },
-        { "value": "Georgia, serif", "label": "Georgia" }
-      ],
-      "default": "Arial, sans-serif"
-    },
-    {
-      "type": "range",
-      "id": "text_pos_x_percent",
-      "label": "文本水平位置 (%)",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "default": 50,
-      "info": "从左到右的百分比位置"
-    },
-    {
-      "type": "range",
-      "id": "text_pos_y_percent",
-      "label": "文本垂直位置 (%)",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "default": 25,
-      "info": "从上到下的百分比位置"
-    },
-    {
-      "type": "range",
-      "id": "image_max_width",
-      "label": "预览图最大宽度 (px)",
-      "min": 200,
-      "max": 1200,
-      "step": 10,
-      "default": 600,
-      "info": "设置0则使用图片原始宽度（可能很大）"
-    }
-  ],
-  "presets": [
-    {
-      "name": "Customized"
-    }
-  ]
 }
-{% endschema %} {% endcomment %}
-
-<div class=”product-page”>
-  <div class=”product-image”>
-    {{ product.featured_image | image_url: width: 400 | image_tag }}
-  </div>
-  <div class=”product-title”>
-    {{ product.title }}
-  </div>
-  <div class=”product-price”>
-    {{ product.price | money }}
-  </div>
-</div>
+{% endschema %}
